@@ -228,16 +228,22 @@ public class Sudoku {
 			cand[i] = candidates;
 		}
 
-		// THIS IS WHERE THINGS GET REALLY TRICKY
+		// THIS IS WHERE THINGS GET TRICKY
 
 		eliminateLockedCandidates("c");
 		eliminateLockedCandidates("r");
 
-		// NONSENSE (BTW)
-		eliminateNTuples("r", 3);
+		String settings = "rcb";
+		for (int i = 0; i < settings.length(); i++) {
+			for (int j = 2; j < ((width / 2) + 1); j++) {
+				eliminateNTuplesKinda(settings.charAt(i) + "", j);
+			}
+		}
 	}
 
-	private static void eliminateNTuples(String option, int tupleSize) {
+	// WORKS ONLY IN THE PERFECT SCENARIO FOR TWO PLUS TUPLES (RARE APPARENTLY) (NOT
+	// GOOD)
+	private static void eliminateNTuplesKinda(String option, int tupleSize) {
 		int width = (int) Math.sqrt((double) size);
 
 		int widthOfBox = (int) Math.sqrt((double) width);
@@ -276,18 +282,42 @@ public class Sudoku {
 				}
 			}
 
-			// BUILDING A CONCENTRATED VERSION OF occurences CALLED conOcc
+			// BUILDING A CONCENTRATED VERSION OF occurrences CALLED conOcc
 			// THIS MAP CONTAINS ONLY ELEMENTS WITH VALUES OF SIZE tupleSize
+			ArrayList<Integer> numbersInQuestion = new ArrayList<Integer>();
 			Map<String, ArrayList<Integer>> conOcc = new HashMap<String, ArrayList<Integer>>();
 			for (Entry<String, ArrayList<Integer>> entry : occurences.entrySet()) {
 				// ONLY ONE OCCURENCE OF THIS ENTRY
 				if (entry.getValue().size() == tupleSize) {
 					conOcc.put(entry.getKey(), entry.getValue());
+					numbersInQuestion.add(Integer.parseInt(entry.getKey()));
 				}
 			}
-
 			// TODO - conOcc MAY NOT BE HELPFUL...
+			// ROLLING WITH IT ANYWAY
 
+			for (int j = 0; j < numbersInQuestion.size(); j++) {
+				int occurenceCount = 0;
+				ArrayList<Integer> candidatesToSave = new ArrayList<Integer>();
+				ArrayList<Integer> cellsToClear = new ArrayList<Integer>();
+				for (int k = 0; k < numbersInQuestion.size(); k++) {
+					if ((conOcc.get(numbersInQuestion.get(j) + "").equals(conOcc.get(numbersInQuestion.get(k) + "")))) {
+						occurenceCount++;
+						candidatesToSave.add(numbersInQuestion.get(k));
+					}
+				}
+				ArrayList<String> candToSaveString = new ArrayList<String>();
+				for (int k = 0; k < candidatesToSave.size(); k++) {
+					candToSaveString.add(candidatesToSave.get(k) + "");
+				}
+				if (occurenceCount == tupleSize) {
+					cellsToClear = conOcc.get(numbersInQuestion.get(j) + "");
+					for (int k = 0; k < cellsToClear.size(); k++) {
+						candArr.set(cellsToClear.get(k), candToSaveString);
+					}
+				}
+
+			}
 		}
 
 		// REBUILDING cand[]

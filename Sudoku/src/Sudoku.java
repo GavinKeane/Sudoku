@@ -3,6 +3,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -490,15 +491,30 @@ public class Sudoku {
 			for (int j = 0; j < sizeOfBox; j++) {
 				box[j] = rep[indices.get(i).get(j)];
 			}
-			Arrays.sort(box);
+			StringSortByIntValue sorter = new StringSortByIntValue();
+			Arrays.sort(box, sorter);
 			String boxInOrder = "";
 			for (int j = 0; j < box.length; j++) {
 				boxInOrder += box[j];
 			}
+
 			if (!boxInOrder.equals(correctComparison)) {
 				correct = false;
 			}
 		}
 		return correct;
+	}
+
+	static class StringSortByIntValue implements Comparator<String> {
+		@Override
+		public int compare(String a, String b) {
+			try {
+				int aInt = Integer.parseInt(a);
+				int bInt = Integer.parseInt(b);
+				return aInt - bInt;
+			} catch (Exception e) {
+				return 0;
+			}
+		}
 	}
 }

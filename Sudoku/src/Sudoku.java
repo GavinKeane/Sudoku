@@ -77,17 +77,22 @@ public class Sudoku {
 
 	private static void printRep() {
 		int width = (int) Math.sqrt((double) size);
+		int sqrtWidth = (int) Math.sqrt((double) width);
 		int numberOfDigits = width / 10;
-		System.out.print("╔");
+		System.out.print("\u2554");
 		for (int i = 0; i < width; i++) {
 			for (int j = 0; j < (numberOfDigits + 1); j++) {
-				System.out.print("═");
+				System.out.print("\u2550");
 			}
 			if (i + 1 != (width)) {
-				System.out.print("╦");
+				if (i % sqrtWidth == (sqrtWidth - 1)) {
+					System.out.print("\u2566");
+				} else {
+					System.out.print("\u2564");
+				}
 			}
 		}
-		System.out.println("╗");
+		System.out.println("\u2557");
 		for (int i = 0; i < width; i++) {
 			for (int j = 0; j < width; j++) {
 				String toPrint = rep[width * i + j] + "";
@@ -97,34 +102,63 @@ public class Sudoku {
 				while (toPrint.length() < numberOfDigits + 1) {
 					toPrint += " ";
 				}
-				System.out.print("║");
+				if (j % sqrtWidth == 0) {
+					System.out.print("\u2551");
+				} else {
+					System.out.print("\u2502");
+				}
 				System.out.print(toPrint);
 			}
-			System.out.println("║");
-
+			System.out.println("\u2551");
 			if (i + 1 != width) {
-				System.out.print("╠");
+				if (i % sqrtWidth == (sqrtWidth - 1)) {
+					System.out.print("\u2560");
+				} else {
+					System.out.print("\u255F");
+				}
 				for (int j = 0; j < width; j++) {
 					for (int k = 0; k < (numberOfDigits + 1); k++) {
-						System.out.print("═");
+						if (i % sqrtWidth == (sqrtWidth - 1)) {
+							System.out.print("\u2550");
+						} else {
+							System.out.print("\u257C");
+						}
 					}
 					if (j + 1 != width) {
-						System.out.print("╬");
+						if (i % sqrtWidth == (sqrtWidth - 1) || (j % sqrtWidth == (sqrtWidth - 1))) {
+							if (j % sqrtWidth == (sqrtWidth - 1) && (i % sqrtWidth == (sqrtWidth - 1))) {
+								System.out.print("\u256C");
+							} else if (i % sqrtWidth == (sqrtWidth - 1)) {
+								System.out.print("\u256A");
+							} else {
+								System.out.print("\u256B");
+							}
+						} else {
+							System.out.print("\u253C");
+						}
 					}
 				}
-				System.out.println("╣");
+				if (i % sqrtWidth == (sqrtWidth - 1)) {
+					System.out.println("\u2563");
+				} else {
+					System.out.println("\u2562");
+				}
 			}
 		}
-		System.out.print("╚");
+		System.out.print("\u255A");
 		for (int i = 0; i < width; i++) {
 			for (int j = 0; j < (numberOfDigits + 1); j++) {
-				System.out.print("═");
+				System.out.print("\u2550");
 			}
 			if (i + 1 != width) {
-				System.out.print("╩");
+				if (i % sqrtWidth == (sqrtWidth - 1)) {
+					System.out.print("\u2569");
+				} else {
+					System.out.print("\u2567");
+				}
 			}
 		}
-		System.out.println("╝");
+		System.out.println("\u255D");
 	}
 
 	private static boolean hiddenSingle(String option) {

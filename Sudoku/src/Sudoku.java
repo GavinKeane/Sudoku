@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,7 +20,13 @@ public class Sudoku {
 	public static void main(String[] args) throws IOException {
 		Scanner in = new Scanner(System.in);
 		System.out.print("Enter a game: ");
-		BufferedReader reader = new BufferedReader(new FileReader(in.nextLine()));
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new FileReader(in.nextLine()));
+		} catch (FileNotFoundException e) {
+			System.out.println("This file does not exist");
+			System.exit(0);
+		}
 		String line = reader.readLine();
 		size = Integer.parseInt(line);
 		rep = new String[size];
@@ -37,7 +44,10 @@ public class Sudoku {
 			line = reader.readLine();
 		}
 		printRep();
-		System.out.println("---------------------------------------------------------------");
+		for (int j = 0; j < 100; j++) {
+			System.out.print("\u2584");
+		}
+		System.out.println();
 		cand = new String[size];
 		for (int j = 0; j < cand.length; j++) {
 			cand[j] = "--";
@@ -62,6 +72,10 @@ public class Sudoku {
 			}
 			if (!going) {
 				System.out.println("STUMPED!");
+				for (int j = 0; j < 100; j++) {
+					System.out.print("\u2580");
+				}
+				System.out.println();
 				printRep();
 				System.exit(0);
 			}
@@ -70,6 +84,10 @@ public class Sudoku {
 			// TODO - NAKED/HIDDEN TUPLES
 		}
 		System.out.println("SOLVED!");
+		for (int j = 0; j < 100; j++) {
+			System.out.print("\u2580");
+		}
+		System.out.println();
 		printRep();
 		reader.close();
 		in.close();
@@ -295,15 +313,15 @@ public class Sudoku {
 		} else if (option.equals("b")) {
 			indices = indicesOfBoxes();
 		}
-		Map<String, ArrayList<Integer>> occurences = new HashMap<String, ArrayList<Integer>>();
+		Map<String, ArrayList<Integer>> occurrences = new HashMap<String, ArrayList<Integer>>();
 
 		// i REFERS TO THE HOUSE NUMBER
 		for (int i = 0; i < indices.size(); i++) {
 			ArrayList<Integer> houseInQuestion = indices.get(i);
 
-			// INITIALIZING occurences
+			// INITIALIZING occurrences
 			for (int i2 = 0; i2 < width; i2++) {
-				occurences.put(Integer.toString(i2 + 1), new ArrayList<Integer>());
+				occurrences.put(Integer.toString(i2 + 1), new ArrayList<Integer>());
 			}
 			// j REFERS TO THE J-TH ELEMENT OF THE HOUSE IN QUESTION
 			// THIS FOR LOOP BUILDS A MAP OF [CANDIDATES]:[HOUSES IT APPEARS IN]
@@ -313,7 +331,7 @@ public class Sudoku {
 				for (int k = 0; k < candidates.size(); k++) {
 					String candidate = candidates.get(k);
 					if (!candidate.equals("--")) {
-						occurences.get(candidate).add(index);
+						occurrences.get(candidate).add(index);
 					}
 				}
 			}
@@ -322,7 +340,7 @@ public class Sudoku {
 			// THIS MAP CONTAINS ONLY ELEMENTS WITH VALUES OF SIZE tupleSize
 			ArrayList<Integer> numbersInQuestion = new ArrayList<Integer>();
 			Map<String, ArrayList<Integer>> conOcc = new HashMap<String, ArrayList<Integer>>();
-			for (Entry<String, ArrayList<Integer>> entry : occurences.entrySet()) {
+			for (Entry<String, ArrayList<Integer>> entry : occurrences.entrySet()) {
 				// ONLY ONE OCCURENCE OF THIS ENTRY
 				if (entry.getValue().size() == tupleSize) {
 					conOcc.put(entry.getKey(), entry.getValue());

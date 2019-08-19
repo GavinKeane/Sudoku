@@ -18,6 +18,7 @@ public class Sudoku {
 
 	public static void main(String[] args) throws IOException {
 		Scanner in = new Scanner(System.in);
+		System.out.print("Enter a game: ");
 		BufferedReader reader = new BufferedReader(new FileReader(in.nextLine()));
 		String line = reader.readLine();
 		size = Integer.parseInt(line);
@@ -36,7 +37,7 @@ public class Sudoku {
 			line = reader.readLine();
 		}
 		printRep();
-		System.out.println("--------------------------------------------------------------");
+		System.out.println("---------------------------------------------------------------");
 		cand = new String[size];
 		for (int j = 0; j < cand.length; j++) {
 			cand[j] = "--";

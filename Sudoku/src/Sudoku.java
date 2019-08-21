@@ -49,7 +49,7 @@ public class Sudoku {
 			line = reader.readLine();
 		}
 		printRep();
-		for (int j = 0; j < 100; j++) {
+		for (int j = 0; j < 105; j++) {
 			System.out.print("\u2584");
 		}
 		System.out.println();
@@ -88,7 +88,7 @@ public class Sudoku {
 			// TODO - LOCKED CANDIDATE (TYPE 2)
 		}
 		System.out.println("SOLVED!");
-		for (int j = 0; j < 100; j++) {
+		for (int j = 0; j < 105; j++) {
 			System.out.print("\u2580");
 		}
 		System.out.println();

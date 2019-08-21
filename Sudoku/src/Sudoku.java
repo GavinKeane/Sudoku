@@ -10,8 +10,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
 
-//8/21/12019 12:50AM
-
 @SuppressWarnings("unused")
 public class Sudoku {
 
@@ -26,7 +24,7 @@ public class Sudoku {
 		try {
 			reader = new BufferedReader(new FileReader(in.nextLine()));
 		} catch (FileNotFoundException e) {
-			System.out.println("This file does not exist");
+			System.out.println("This file does not exist!");
 			System.exit(0);
 		}
 		String line = reader.readLine();
@@ -37,7 +35,12 @@ public class Sudoku {
 		while (line != null) {
 			String nums[] = line.split(" ");
 			for (int j = 0; j < nums.length; j++) {
-				rep[i] = nums[j];
+				try {
+					rep[i] = nums[j];
+				} catch (ArrayIndexOutOfBoundsException e) {
+					System.out.println("The game that was entered was not properly formatted!");
+					System.exit(0);
+				}
 				if (rep[i].equals("X")) {
 					rep[i] = "";
 				}
@@ -339,40 +342,72 @@ public class Sudoku {
 			}
 
 			// BUILDING A CONCENTRATED VERSION OF occurrences CALLED conOcc
-			// THIS MAP CONTAINS ONLY ELEMENTS WITH VALUES OF SIZE tupleSize
+			// THIS MAP CONTAINS ONLY ELEMENTS WITH VALUES OF SIZE (OR LESS THAN BUT NOT
+			// ZERO) tupleSize
 			ArrayList<Integer> numbersInQuestion = new ArrayList<Integer>();
 			Map<String, ArrayList<Integer>> conOcc = new HashMap<String, ArrayList<Integer>>();
 			for (Entry<String, ArrayList<Integer>> entry : occurrences.entrySet()) {
 				// ONLY ONE OCCURENCE OF THIS ENTRY
-				if (entry.getValue().size() == tupleSize) {
+				if ((entry.getValue().size() <= tupleSize) && (entry.getValue().size() != 0)) {
 					conOcc.put(entry.getKey(), entry.getValue());
 					numbersInQuestion.add(Integer.parseInt(entry.getKey()));
 				}
 			}
-			// TODO - conOcc MAY NOT BE HELPFUL...
-			// ROLLING WITH IT ANYWAY
 
-			for (int j = 0; j < numbersInQuestion.size(); j++) {
-				int occurenceCount = 0;
-				ArrayList<Integer> candidatesToSave = new ArrayList<Integer>();
-				ArrayList<Integer> cellsToClear = new ArrayList<Integer>();
-				for (int k = 0; k < numbersInQuestion.size(); k++) {
-					if ((conOcc.get(numbersInQuestion.get(j) + "").equals(conOcc.get(numbersInQuestion.get(k) + "")))) {
-						occurenceCount++;
-						candidatesToSave.add(numbersInQuestion.get(k));
+			// combos IS A LIST OF ALL THE BINARY REPRESENTATIONS <= TO
+			// 2^numbersInQuestion.size() WHICH CONTAIN EXACTLY
+			// tupleSize ONES IN IT. THIS WILL BE USED TO ITERATE THROUGH ALL THE
+			// COMBINATIONS OF numbersInQuestion
+			ArrayList<String> combos = new ArrayList<String>();
+			for (int j = 0; j < Math.pow(2, numbersInQuestion.size()); j++) {
+				String binRep = Integer.toBinaryString(j);
+				while (binRep.length() < numbersInQuestion.size()) {
+					binRep = "0" + binRep;
+				}
+				int onesCount = 0;
+				for (int k = 0; k < binRep.length(); k++) {
+					if (binRep.charAt(k) == '1') {
+						onesCount++;
 					}
 				}
-				ArrayList<String> candToSaveString = new ArrayList<String>();
-				for (int k = 0; k < candidatesToSave.size(); k++) {
-					candToSaveString.add(candidatesToSave.get(k) + "");
+				if (onesCount == tupleSize) {
+					combos.add(binRep);
 				}
-				if (occurenceCount == tupleSize) {
-					cellsToClear = conOcc.get(numbersInQuestion.get(j) + "");
-					for (int k = 0; k < cellsToClear.size(); k++) {
-						candArr.set(cellsToClear.get(k), candToSaveString);
+			}
+
+			for (int j = 0; j < combos.size(); j++) {
+				ArrayList<Integer> comboInQuestion = new ArrayList<Integer>();
+				for (int k = 0; k < combos.get(j).length(); k++) {
+					if (combos.get(j).charAt(k) == '1') {
+						comboInQuestion.add(numbersInQuestion.get(k));
 					}
 				}
 
+				// SOMETHING GOES HERE
+				// THIS IS TALLYING UP THE CELLS IN WHICH THE COMBO IN QUESTION APPEARS IN
+				ArrayList<Integer> cellsWhichContainElementsFromCombo = new ArrayList<Integer>();
+				ArrayList<Integer> cells = new ArrayList<Integer>();
+				for (int k = 0; k < comboInQuestion.size(); k++) {
+					cells = conOcc.get(comboInQuestion.get(k) + "");
+					for (int l = 0; l < cells.size(); l++) {
+						cellsWhichContainElementsFromCombo.add(cells.get(l));
+					}
+				}
+				cellsWhichContainElementsFromCombo = removeDuplicates(cellsWhichContainElementsFromCombo);
+
+				// A TUPLE HAS OCCURED IF THIS CONDITION IS TRUE
+				if (cellsWhichContainElementsFromCombo.size() == tupleSize) {
+					for (int k = 0; k < cellsWhichContainElementsFromCombo.size(); k++) {
+						int cellToElimFrom = cellsWhichContainElementsFromCombo.get(k);
+						ArrayList<String> cands = candArr.get(cellToElimFrom);
+						for (int l = 0; l < cands.size(); l++) {
+							if (!comboInQuestion.contains(Integer.parseInt(cands.get(l)))) {
+								candArr.get(cellToElimFrom).remove(cands.get(l));
+								l--;
+							}
+						}
+					}
+				}
 			}
 		}
 
@@ -387,6 +422,16 @@ public class Sudoku {
 			}
 			cand[k] = candFill.substring(1, candFill.length());
 		}
+	}
+
+	public static <T> ArrayList<T> removeDuplicates(ArrayList<T> list) {
+		ArrayList<T> newList = new ArrayList<T>();
+		for (T element : list) {
+			if (!newList.contains(element)) {
+				newList.add(element);
+			}
+		}
+		return newList;
 	}
 
 	private static void eliminateLockedCandidates(String option) {

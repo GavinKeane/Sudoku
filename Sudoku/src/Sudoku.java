@@ -85,8 +85,7 @@ public class Sudoku {
 				System.exit(0);
 			}
 
-			// TODO - LOCKED CANDIDATE (TYPE 1 HANDLED) (TYPE 2 AFTER TWINS)
-			// TODO - NAKED/HIDDEN TUPLES
+			// TODO - LOCKED CANDIDATE (TYPE 2)
 		}
 		System.out.println("SOLVED!");
 		for (int j = 0; j < 100; j++) {
@@ -101,7 +100,7 @@ public class Sudoku {
 	private static void printRep() {
 		int width = (int) Math.sqrt((double) size);
 		int sqrtWidth = (int) Math.sqrt((double) width);
-		int numberOfDigits = width / 10;
+		int numberOfDigits = (int) Math.log10(width);
 		System.out.print("\u2554");
 		for (int i = 0; i < width; i++) {
 			for (int j = 0; j < (numberOfDigits + 1); j++) {

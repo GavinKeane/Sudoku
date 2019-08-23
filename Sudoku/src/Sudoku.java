@@ -18,6 +18,7 @@ public class Sudoku {
 	static String[] cand;
 
 	public static void main(String[] args) throws IOException {
+		int boxesToDraw = 105;
 		Scanner in = new Scanner(System.in);
 		System.out.print("Enter a game: ");
 		BufferedReader reader = null;
@@ -48,8 +49,14 @@ public class Sudoku {
 			}
 			line = reader.readLine();
 		}
+		for (int nullCheck = 0; nullCheck < rep.length; nullCheck++) {
+			if (rep[nullCheck] == null) {
+				System.out.println("The game that was entered was not properly formatted!");
+				System.exit(0);
+			}
+		}
 		printRep();
-		for (int j = 0; j < 105; j++) {
+		for (int j = 0; j < boxesToDraw; j++) {
 			System.out.print("\u2584");
 		}
 		System.out.println();
@@ -67,7 +74,8 @@ public class Sudoku {
 				// NAKED SINGLE
 				if (cand[j].length() == 1) {
 					rep[j] = cand[j];
-					going = true;}
+					going = true;
+				}
 			}
 			// HIDDEN SINGLE
 			if (!going) {
@@ -92,7 +100,7 @@ public class Sudoku {
 
 			if (!going) {
 				System.out.println("STUMPED!");
-				for (int j = 0; j < 100; j++) {
+				for (int j = 0; j < boxesToDraw; j++) {
 					System.out.print("\u2580");
 				}
 				System.out.println();
@@ -103,7 +111,7 @@ public class Sudoku {
 			// TODO - LOCKED CANDIDATE (TYPE 2)
 		}
 		System.out.println("SOLVED!");
-		for (int j = 0; j < 105; j++) {
+		for (int j = 0; j < boxesToDraw; j++) {
 			System.out.print("\u2580");
 		}
 		System.out.println();

@@ -319,7 +319,7 @@ public class Sudoku {
 			settings = "rcb";
 			for (int i = 0; i < settings.length(); i++) {
 				for (int j = 2; j < ((width / 2) + 1); j++) {
-					eliminateNTuples(settings.charAt(i) + "", j);
+					eliminateSubsets(settings.charAt(i) + "", j);
 				}
 			}
 			settings = "rc";
@@ -447,7 +447,7 @@ public class Sudoku {
 		}
 	}
 
-	private static void eliminateNTuples(String option, int tupleSize) {
+	private static void eliminateSubsets(String option, int tupleSize) {
 		int width = (int) Math.sqrt((double) size);
 		int widthOfBox = (int) Math.sqrt((double) width);
 		ArrayList<ArrayList<String>> candArr = new ArrayList<ArrayList<String>>();

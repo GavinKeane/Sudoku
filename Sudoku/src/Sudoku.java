@@ -288,22 +288,94 @@ public class Sudoku {
 
 		// THIS IS WHERE THINGS GET TRICKY
 
-		eliminateLockedCandidates("c");
-		eliminateLockedCandidates("r");
-
-		String settings = "rcb";
+		String settings = "rc";
+		for (int i = 0; i < settings.length(); i++) {
+			eliminateLockedCandidates(settings.charAt(i) + "");
+		}
+		settings = "rcb";
 		for (int i = 0; i < settings.length(); i++) {
 			for (int j = 2; j < ((width / 2) + 1); j++) {
-				eliminateNTuplesKinda(settings.charAt(i) + "", j);
+				eliminateNTuples(settings.charAt(i) + "", j);
+			}
+		}
+		settings = "rc";
+		for (int i = 0; i < settings.length(); i++) {
+			for (int j = 2; j < ((width / 2) + 1); j++) {
+				eliminateFish(settings.charAt(i) + "", j);
 			}
 		}
 	}
 
-	// WORKS ONLY IN THE PERFECT SCENARIO FOR TWO PLUS TUPLES (RARE APPARENTLY) (NOT
-	// GOOD)
-	private static void eliminateNTuplesKinda(String option, int tupleSize) {
+	private static void eliminateFish(String option, int fishSize) {
 		int width = (int) Math.sqrt((double) size);
+		int widthOfBox = (int) Math.sqrt((double) width);
+		ArrayList<ArrayList<String>> candArr = new ArrayList<ArrayList<String>>();
+		for (int i = 0; i < cand.length; i++) {
+			candArr.add(new ArrayList<String>(Arrays.asList(cand[i].split(" "))));
+		}
+		ArrayList<ArrayList<Integer>> indices = new ArrayList<ArrayList<Integer>>();
+		if (option.equals("r")) {
+			indices = indicesOfRows();
+		} else if (option.equals("c")) {
+			indices = indicesOfColumns();
+		}
+		//////////////////////
+		// NEED TO ITERATE ON ALL THE NUMBERS IN THE RANGE OF WIDTH
+		// i IS THE NUMBER THAT WE ARE CHECKING FOR FISH ON
+		for (int i = 1; i <= width; i++) {
 
+			// BUILD A LIST OF ALL THE HOUSES WHICH CONTAIN <= fishSize OCCURENCES
+			// OF i. THIS LIST IS CALLED housesInQuestion
+			ArrayList<Integer> housesInQuestion = new ArrayList<Integer>();
+			for (int j = 0; j < indices.size(); j++) {
+				int occurenceCount = 0;
+				for (int k = 0; k < indices.get(j).size(); k++) {
+					if (candArr.get(indices.get(j).get(k)).contains(i + "")) {
+						occurenceCount++;
+					}
+				}
+				if (occurenceCount <= fishSize && occurenceCount > 0) {
+					housesInQuestion.add(j);
+				}
+			}
+
+			// BUILDING THIS GOOFY LIST OF BINARY NUMBERS WHICH CONTAIN
+			// fishSize ONES CALLED combos
+			ArrayList<String> combos = new ArrayList<String>();
+			for (int j = 0; j < Math.pow(2, housesInQuestion.size()); j++) {
+				String binRep = Integer.toBinaryString(j);
+				while (binRep.length() < housesInQuestion.size()) {
+					binRep = "0" + binRep;
+				}
+				int onesCount = 0;
+				for (int k = 0; k < binRep.length(); k++) {
+					if (binRep.charAt(k) == '1') {
+						onesCount++;
+					}
+				}
+				if (onesCount == fishSize) {
+					combos.add(binRep);
+				}
+			}
+
+			System.out.println();
+		}
+		///////////////////////
+		// REBUILDING cand[]
+		for (int k = 0; k < candArr.size(); k++) {
+			String candFill = "";
+			for (int l = 0; l < candArr.get(k).size(); l++) {
+				candFill += " " + candArr.get(k).get(l);
+			}
+			if (candFill.equals("")) {
+				candFill = " --";
+			}
+			cand[k] = candFill.substring(1, candFill.length());
+		}
+	}
+
+	private static void eliminateNTuples(String option, int tupleSize) {
+		int width = (int) Math.sqrt((double) size);
 		int widthOfBox = (int) Math.sqrt((double) width);
 		ArrayList<ArrayList<String>> candArr = new ArrayList<ArrayList<String>>();
 		for (int i = 0; i < cand.length; i++) {

@@ -60,7 +60,7 @@ public class Sudoku {
 		boolean going = true;
 		while (!isCorrect() && going) {
 			going = false;
-			updateCand();
+			updateCand(false);
 			System.out.print("");
 			for (int j = 0; j < cand.length; j++) {
 
@@ -70,11 +70,27 @@ public class Sudoku {
 					going = true;
 				}
 			}
-
 			// HIDDEN SINGLE
 			if (!going) {
-				going = hiddenSingle("ROW") || hiddenSingle("COLUMN") || hiddenSingle("BOX");
+				going = hiddenSingle("r") || hiddenSingle("c") || hiddenSingle("b");
 			}
+
+			// VERY HACKY METHOD OF ONLY DOING TOUGH STRATS IF THE EASY STRATS FAIL
+			if (!going) {
+				updateCand(true);
+				System.out.print("");
+				for (int j = 0; j < cand.length; j++) {
+					if (cand[j].length() == 1) {
+						rep[j] = cand[j];
+						going = true;
+					}
+				}
+				if (!going) {
+					going = hiddenSingle("r") || hiddenSingle("c") || hiddenSingle("b");
+				}
+			}
+			// THE HACK ENDS HERE
+
 			if (!going) {
 				System.out.println("STUMPED!");
 				for (int j = 0; j < 100; j++) {
@@ -188,11 +204,11 @@ public class Sudoku {
 		int width = (int) Math.sqrt((double) size);
 		ArrayList<ArrayList<Integer>> indices = null;
 		ArrayList<Integer> index = new ArrayList<Integer>();
-		if (option.equals("ROW")) {
+		if (option.equals("r")) {
 			indices = indicesOfRows();
-		} else if (option.equals("COLUMN")) {
+		} else if (option.equals("c")) {
 			indices = indicesOfColumns();
-		} else if (option.equals("BOX")) {
+		} else if (option.equals("b")) {
 			indices = indicesOfBoxes();
 		}
 
@@ -229,7 +245,7 @@ public class Sudoku {
 		return playMade;
 	}
 
-	private static void updateCand() {
+	private static void updateCand(boolean applyToughStrats) {
 		cand = new String[size];
 		int width = (int) Math.sqrt((double) size);
 		for (int i = 0; i < size; i++) {
@@ -292,23 +308,24 @@ public class Sudoku {
 		for (int i = 0; i < settings.length(); i++) {
 			eliminateLockedCandidates(settings.charAt(i) + "");
 		}
-		settings = "rcb";
-		for (int i = 0; i < settings.length(); i++) {
-			for (int j = 2; j < ((width / 2) + 1); j++) {
-				eliminateNTuples(settings.charAt(i) + "", j);
+		if (applyToughStrats) {
+			settings = "rcb";
+			for (int i = 0; i < settings.length(); i++) {
+				for (int j = 2; j < ((width / 2) + 1); j++) {
+					eliminateNTuples(settings.charAt(i) + "", j);
+				}
 			}
-		}
-		settings = "rc";
-		for (int i = 0; i < settings.length(); i++) {
-			for (int j = 2; j < ((width / 2) + 1); j++) {
-				eliminateFish(settings.charAt(i) + "", j);
+			settings = "rc";
+			for (int i = 0; i < settings.length(); i++) {
+				for (int j = 2; j < ((width / 2) + 1); j++) {
+					eliminateFish(settings.charAt(i) + "", j);
+				}
 			}
 		}
 	}
 
 	private static void eliminateFish(String option, int fishSize) {
 		int width = (int) Math.sqrt((double) size);
-		int widthOfBox = (int) Math.sqrt((double) width);
 		ArrayList<ArrayList<String>> candArr = new ArrayList<ArrayList<String>>();
 		for (int i = 0; i < cand.length; i++) {
 			candArr.add(new ArrayList<String>(Arrays.asList(cand[i].split(" "))));
@@ -319,18 +336,18 @@ public class Sudoku {
 		} else if (option.equals("c")) {
 			indices = indicesOfColumns();
 		}
-		//////////////////////
+
 		// NEED TO ITERATE ON ALL THE NUMBERS IN THE RANGE OF WIDTH
-		// i IS THE NUMBER THAT WE ARE CHECKING FOR FISH ON
-		for (int i = 1; i <= width; i++) {
+		// fishDigit IS THE NUMBER THAT WE ARE CHECKING FOR FISH ON
+		for (int fishDigit = 1; fishDigit <= width; fishDigit++) {
 
 			// BUILD A LIST OF ALL THE HOUSES WHICH CONTAIN <= fishSize OCCURENCES
-			// OF i. THIS LIST IS CALLED housesInQuestion
+			// OF fishDigit. THIS LIST IS CALLED housesInQuestion
 			ArrayList<Integer> housesInQuestion = new ArrayList<Integer>();
 			for (int j = 0; j < indices.size(); j++) {
 				int occurenceCount = 0;
 				for (int k = 0; k < indices.get(j).size(); k++) {
-					if (candArr.get(indices.get(j).get(k)).contains(i + "")) {
+					if (candArr.get(indices.get(j).get(k)).contains(fishDigit + "")) {
 						occurenceCount++;
 					}
 				}
@@ -357,10 +374,59 @@ public class Sudoku {
 					combos.add(binRep);
 				}
 			}
+			for (int j = 0; j < combos.size(); j++) {
 
-			System.out.println("PICK UP HERE");
+				// comboInQuestion IS A LIST OF THE HOUSE INDEX OF THE HOUSES NEEDED TO BE
+				// CHECKED FOR A FISH
+				ArrayList<Integer> comboInQuestion = new ArrayList<Integer>();
+				for (int k = 0; k < combos.get(j).length(); k++) {
+					if (combos.get(j).charAt(k) == '1') {
+						comboInQuestion.add(housesInQuestion.get(k));
+					}
+				}
+
+				ArrayList<Integer> uniqueIndicesFishDigitWasFoundIn = new ArrayList<Integer>();
+				for (int k = 0; k < comboInQuestion.size(); k++) {
+					int houseBeingChecked = comboInQuestion.get(k);
+					for (int l = 0; l < indices.get(houseBeingChecked).size(); l++) {
+						int cellBeingChecked = indices.get(houseBeingChecked).get(l);
+						if (candArr.get(cellBeingChecked).contains(fishDigit + "")) {
+							uniqueIndicesFishDigitWasFoundIn
+									.add(option.equals("r") ? cellBeingChecked % width : cellBeingChecked / width);
+						}
+					}
+				}
+				uniqueIndicesFishDigitWasFoundIn = removeDuplicates(uniqueIndicesFishDigitWasFoundIn);
+
+				// A FISH EXISTS
+				if (uniqueIndicesFishDigitWasFoundIn.size() == fishSize) {
+					ArrayList<Integer> housesOppositeTheOptionToBeCleared = new ArrayList<Integer>(
+							uniqueIndicesFishDigitWasFoundIn);
+					ArrayList<ArrayList<Integer>> oppositeIndices = new ArrayList<ArrayList<Integer>>();
+					if (option.equals("c")) {
+						oppositeIndices = indicesOfRows();
+					} else if (option.equals("r")) {
+						oppositeIndices = indicesOfColumns();
+					}
+					for (int k = 0; k < housesOppositeTheOptionToBeCleared.size(); k++) {
+						int houseToBeCleared = housesOppositeTheOptionToBeCleared.get(k);
+						for (int l = 0; l < oppositeIndices.get(houseToBeCleared).size(); l++) {
+							int cellToBeCleared = oppositeIndices.get(houseToBeCleared).get(l);
+							if (option.equals("r")) {
+								if (!comboInQuestion.contains(cellToBeCleared / width)) {
+									candArr.get(cellToBeCleared).remove(fishDigit + "");
+								}
+							} else if (option.equals("c")) {
+								if (!comboInQuestion.contains(cellToBeCleared % width)) {
+									candArr.get(cellToBeCleared).remove(fishDigit + "");
+								}
+							}
+						}
+					}
+				}
+			}
 		}
-		///////////////////////
+
 		// REBUILDING cand[]
 		for (int k = 0; k < candArr.size(); k++) {
 			String candFill = "";
@@ -525,8 +591,6 @@ public class Sudoku {
 				rowsInBox.get((boxIndices.get(i).get(j) / width) % widthOfBox).add(boxIndices.get(i).get(j));
 			}
 
-			// STEPPING STONE
-
 			if (option.equals("c")) {
 
 			} else {
@@ -595,8 +659,7 @@ public class Sudoku {
 	}
 
 	private static boolean isCorrect() {
-		boolean isCorrect = check("b") && check("r") && check("c");
-		return isCorrect;
+		return check("b") && check("r") && check("c");
 	}
 
 	private static ArrayList<ArrayList<Integer>> indicesOfBoxes() {

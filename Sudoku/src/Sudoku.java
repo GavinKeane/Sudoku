@@ -67,8 +67,7 @@ public class Sudoku {
 				// NAKED SINGLE
 				if (cand[j].length() == 1) {
 					rep[j] = cand[j];
-					going = true;
-				}
+					going = true;}
 			}
 			// HIDDEN SINGLE
 			if (!going) {

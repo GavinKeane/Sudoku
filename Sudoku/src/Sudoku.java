@@ -69,7 +69,7 @@ public class Sudoku {
 			going = false;
 			updateCand(false);
 			System.out.print("");
-			for (int j = 0; j < cand.length; j++) {
+			for (int j = 0; (j < cand.length) && !going; j++) {
 
 				// NAKED SINGLE
 				if (cand[j].length() == 1) {
@@ -86,7 +86,7 @@ public class Sudoku {
 			if (!going) {
 				updateCand(true);
 				System.out.print("");
-				for (int j = 0; j < cand.length; j++) {
+				for (int j = 0; j < cand.length && !going; j++) {
 					if (cand[j].length() == 1) {
 						rep[j] = cand[j];
 						going = true;
@@ -95,6 +95,11 @@ public class Sudoku {
 				if (!going) {
 					going = hiddenSingle("r") || hiddenSingle("c") || hiddenSingle("b");
 				}
+
+				// BOWMANS BINGO HAPPENS HERE
+
+				//
+
 			}
 			// THE HACK ENDS HERE
 
@@ -240,7 +245,7 @@ public class Sudoku {
 				// ONLY ONE OCCURENCE OF THIS ENTRY
 				if (entry.getValue() == 1) {
 					String answerToBeFilled = " " + entry.getKey() + " ";
-					for (int j = 0; j < width; j++) {
+					for (int j = 0; j < width && !playMade; j++) {
 						if ((" " + (cand[index.get(j)]) + " ").contains(answerToBeFilled)) {
 							rep[index.get(j)] = answerToBeFilled.substring(1, answerToBeFilled.length() - 1);
 							playMade = true;

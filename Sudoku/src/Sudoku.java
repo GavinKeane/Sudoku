@@ -82,6 +82,7 @@ public class Sudoku {
 				going = hiddenSingle("r") || hiddenSingle("c") || hiddenSingle("b");
 			}
 
+			
 			// VERY HACKY METHOD OF ONLY DOING TOUGH STRATS IF THE EASY STRATS FAIL
 			if (!going) {
 				updateCand(true);

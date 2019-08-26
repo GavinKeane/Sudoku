@@ -21,6 +21,7 @@ public class Sudoku {
 
 	public static void main(String[] args) throws IOException {
 		int boxesToDraw = 105;
+		int bowmanAttempts = 0;
 		boolean bingoYieldsNothing = false;
 		ArrayList<Integer> stab = new ArrayList<Integer>();
 		boolean playingBingo = false;
@@ -70,7 +71,6 @@ public class Sudoku {
 			cand[j] = "--";
 		}
 		boolean going = true;
-		String snapshot[] = new String[rep.length];
 		while (!isCorrect() && going) {
 			going = false;
 			updateCand(false);
@@ -101,24 +101,15 @@ public class Sudoku {
 				if (!going) {
 					going = hiddenSingle("r") || hiddenSingle("c") || hiddenSingle("b");
 				}
-
-				// TODO - BOWMANS BINGO HAPPENS HERE (COMPLETELY BROKEN PLEASE HELP)
-				if (!going && !playingBingo) {
-					playingBingo = true;
-
-					// THE SNAPSHOT IDEA HAS A LOT OF POTENTIAL... JUST NEED TO SIT ON IT
-					// FOR A WHILE...
-					for (int j = 0; j < rep.length; j++) {
-						snapshot[j] = rep[j];
-					}
-					stab = playBingo();
-				}
-
 			}
 			// THE HACK ENDS HERE
 
 			if (!going) {
-				if (!going && !playingBingo) {
+				if (bowmanAttempts < (int) Math.pow(size, 3)) {
+					bowmanAttempts++;
+					playBingo();
+					going = true;
+				} else {
 					System.out.println("STUMPED!");
 					for (int j = 0; j < boxesToDraw; j++) {
 						System.out.print("\u2580");
@@ -127,25 +118,7 @@ public class Sudoku {
 					printRep();
 					System.exit(0);
 				}
-				if (contradictionPresent()) {
-					
-					// THIS NEVER HAPPENS BECAUSE IT NEVER GETS A CHANCE TO PLAY A LITTLE BIT
-					
-					// ADD stab TO bingoResults
-					bingoResults.add(stab);
-					rep = snapshot;
-					System.out.println("CONTRA");
-					playingBingo = false;
-					
-				} else if (!going && playingBingo) {
-					rep = snapshot;
-					System.out.println("STUCK?");
-					playingBingo = false;
-				}
 			}
-			System.out.println("SPINNING");
-			printRep();
-			going = true;
 
 			// TODO - LOCKED CANDIDATE (TYPE 2)
 		}
@@ -176,6 +149,10 @@ public class Sudoku {
 		// ELEMENT ZERO IS THE CELL INDEX
 		// ELEMENT ONE IS THE GUESS
 		ArrayList<Integer> guess = new ArrayList<Integer>();
+		String snapshot[] = new String[rep.length];
+		for (int i = 0; i < rep.length; i++) {
+			snapshot[i] = rep[i];
+		}
 
 		// STANDARD STUFF
 		int width = (int) Math.sqrt((double) size);
@@ -191,8 +168,51 @@ public class Sudoku {
 
 		// TAKING THE LONG SHOT
 		guess.add(randomGuess);
-		guess.add(Integer.parseInt(candArr.get(randomGuess).get(0)));
-		rep[randomGuess] = candArr.get(randomGuess).get(0);
+		int randomEle = random.nextInt(candArr.get(randomGuess).size());
+		guess.add(Integer.parseInt(candArr.get(randomGuess).get(randomEle)));
+		rep[randomGuess] = candArr.get(randomGuess).get(randomEle);
+
+		boolean going = true;
+		while (!isCorrect() && going) {
+			going = false;
+			updateCand(false);
+			System.out.print("");
+			for (int j = 0; (j < cand.length) && !going; j++) {
+				if (cand[j].length() == 1) {
+					rep[j] = cand[j];
+					going = true;
+				}
+			}
+			if (!going) {
+				going = hiddenSingle("r") || hiddenSingle("c") || hiddenSingle("b");
+			}
+			if (!going) {
+				updateCand(true);
+				System.out.print("");
+				for (int j = 0; j < cand.length && !going; j++) {
+					if (cand[j].length() == 1) {
+						rep[j] = cand[j];
+						going = true;
+					}
+				}
+				if (!going) {
+					going = hiddenSingle("r") || hiddenSingle("c") || hiddenSingle("b");
+				}
+			}
+			if (!going) {
+				if (contradictionPresent()) {
+					for (int i = 0; i < rep.length; i++) {
+						rep[i] = snapshot[i];
+					}
+					bingoResults.add(guess);
+					System.out.println("EXCLUSION " + guess.toString() + " ELIMINATED");
+				} else {
+					for (int i = 0; i < rep.length; i++) {
+						rep[i] = snapshot[i];
+					}
+				}
+			}
+		}
 
 		// REBUILDING cand[]
 		rebuildCand(candArr);
@@ -204,7 +224,6 @@ public class Sudoku {
 		for (int i = 0; i < rep.length; i++) {
 			if (cand[i].equals("--") && rep[i].equals("")) {
 				contra = true;
-				System.out.println("CTIRNAS");
 			}
 		}
 		return contra;
@@ -433,7 +452,6 @@ public class Sudoku {
 		for (int i = 0; i < bingoResults.size(); i++) {
 			ArrayList<Integer> set = bingoResults.get(i);
 			candArr.get(set.get(0)).remove(set.get(1) + "");
-			System.out.println("RESULTS APLPLIED");
 		}
 
 		rebuildCand(candArr);

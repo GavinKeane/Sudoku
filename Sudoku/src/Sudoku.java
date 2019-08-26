@@ -8,6 +8,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Scanner;
 
 @SuppressWarnings("unused")
@@ -16,9 +17,13 @@ public class Sudoku {
 	static int size;
 	static String[] rep;
 	static String[] cand;
+	static ArrayList<ArrayList<Integer>> bingoResults = new ArrayList<ArrayList<Integer>>();
 
 	public static void main(String[] args) throws IOException {
 		int boxesToDraw = 105;
+		boolean bingoYieldsNothing = false;
+		ArrayList<Integer> stab = new ArrayList<Integer>();
+		boolean playingBingo = false;
 		Scanner in = new Scanner(System.in);
 		System.out.print("Enter a game: ");
 		BufferedReader reader = null;
@@ -65,6 +70,7 @@ public class Sudoku {
 			cand[j] = "--";
 		}
 		boolean going = true;
+		String snapshot[] = new String[rep.length];
 		while (!isCorrect() && going) {
 			going = false;
 			updateCand(false);
@@ -82,7 +88,6 @@ public class Sudoku {
 				going = hiddenSingle("r") || hiddenSingle("c") || hiddenSingle("b");
 			}
 
-			
 			// VERY HACKY METHOD OF ONLY DOING TOUGH STRATS IF THE EASY STRATS FAIL
 			if (!going) {
 				updateCand(true);
@@ -97,22 +102,46 @@ public class Sudoku {
 					going = hiddenSingle("r") || hiddenSingle("c") || hiddenSingle("b");
 				}
 
-				// BOWMANS BINGO HAPPENS HERE
+				// TODO - BOWMANS BINGO HAPPENS HERE (COMPLETELY BROKEN PLEASE HELP)
+				if (!going && !playingBingo) {
+					playingBingo = true;
 
-				//
+					// THE SNAPSHOT IDEA HAS A LOT OF POTENTIAL... JUST NEED TO SIT ON IT
+					// FOR A WHILE...
+					for (int j = 0; j < rep.length; j++) {
+						snapshot[j] = rep[j];
+					}
+					stab = playBingo();
+				}
 
 			}
 			// THE HACK ENDS HERE
 
 			if (!going) {
-				System.out.println("STUMPED!");
-				for (int j = 0; j < boxesToDraw; j++) {
-					System.out.print("\u2580");
+				if (!going && !playingBingo) {
+					System.out.println("STUMPED!");
+					for (int j = 0; j < boxesToDraw; j++) {
+						System.out.print("\u2580");
+					}
+					System.out.println();
+					printRep();
+					System.exit(0);
 				}
-				System.out.println();
-				printRep();
-				System.exit(0);
+				if (contradictionPresent()) {
+					// ADD stab TO bingoResults
+					bingoResults.add(stab);
+					rep = snapshot;
+
+					// THIS NEVER HAPPENS BECAUSE IT NEVER GETS A CHANCE TO PLAY A LITTLE BIT
+					System.out.println("CONTRA");
+					playingBingo = false;
+				} else if (!going && playingBingo) {
+					rep = snapshot;
+					System.out.println("STUCK?");
+					playingBingo = false;
+				}
 			}
+			going = true;
 
 			// TODO - LOCKED CANDIDATE (TYPE 2)
 		}
@@ -124,6 +153,56 @@ public class Sudoku {
 		printRep();
 		reader.close();
 		in.close();
+	}
+
+	private static void rebuildCand(ArrayList<ArrayList<String>> candArr) {
+		for (int k = 0; k < candArr.size(); k++) {
+			String candFill = "";
+			for (int l = 0; l < candArr.get(k).size(); l++) {
+				candFill += " " + candArr.get(k).get(l);
+			}
+			if (candFill.equals("")) {
+				candFill = " --";
+			}
+			cand[k] = candFill.substring(1, candFill.length());
+		}
+	}
+
+	private static ArrayList<Integer> playBingo() {
+		// ELEMENT ZERO IS THE CELL INDEX
+		// ELEMENT ONE IS THE GUESS
+		ArrayList<Integer> guess = new ArrayList<Integer>();
+
+		// STANDARD STUFF
+		int width = (int) Math.sqrt((double) size);
+		ArrayList<ArrayList<String>> candArr = new ArrayList<ArrayList<String>>();
+		for (int i = 0; i < cand.length; i++) {
+			candArr.add(new ArrayList<String>(Arrays.asList(cand[i].split(" "))));
+		}
+		Random random = new Random();
+		int randomGuess = random.nextInt(size);
+		while (candArr.get(randomGuess).size() < 2) {
+			randomGuess = random.nextInt(size);
+		}
+
+		// TAKING THE LONG SHOT
+		guess.add(randomGuess);
+		guess.add(Integer.parseInt(candArr.get(randomGuess).get(0)));
+		rep[randomGuess] = candArr.get(randomGuess).get(0);
+
+		// REBUILDING cand[]
+		rebuildCand(candArr);
+		return guess;
+	}
+
+	private static boolean contradictionPresent() {
+		boolean contra = false;
+		for (int i = 0; i < rep.length; i++) {
+			if (cand[i].equals("--") && rep[i].equals("")) {
+				contra = true;
+			}
+		}
+		return contra;
 	}
 
 	private static void printRep() {
@@ -317,6 +396,8 @@ public class Sudoku {
 
 		// THIS IS WHERE THINGS GET TRICKY
 
+		applyBingoResults();
+
 		String settings = "rc";
 		for (int i = 0; i < settings.length(); i++) {
 			eliminateLockedCandidates(settings.charAt(i) + "");
@@ -335,6 +416,22 @@ public class Sudoku {
 				}
 			}
 		}
+	}
+
+	private static void applyBingoResults() {
+		int width = (int) Math.sqrt((double) size);
+		ArrayList<ArrayList<String>> candArr = new ArrayList<ArrayList<String>>();
+		for (int i = 0; i < cand.length; i++) {
+			candArr.add(new ArrayList<String>(Arrays.asList(cand[i].split(" "))));
+		}
+
+		for (int i = 0; i < bingoResults.size(); i++) {
+			ArrayList<Integer> set = bingoResults.get(i);
+			candArr.get(set.get(0)).remove(set.get(1) + "");
+			System.out.println("RESULTS APLPLIED");
+		}
+
+		rebuildCand(candArr);
 	}
 
 	private static void eliminateFish(String option, int fishSize) {
@@ -441,16 +538,7 @@ public class Sudoku {
 		}
 
 		// REBUILDING cand[]
-		for (int k = 0; k < candArr.size(); k++) {
-			String candFill = "";
-			for (int l = 0; l < candArr.get(k).size(); l++) {
-				candFill += " " + candArr.get(k).get(l);
-			}
-			if (candFill.equals("")) {
-				candFill = " --";
-			}
-			cand[k] = candFill.substring(1, candFill.length());
-		}
+		rebuildCand(candArr);
 	}
 
 	private static void eliminateSubsets(String option, int tupleSize) {
@@ -562,16 +650,7 @@ public class Sudoku {
 		}
 
 		// REBUILDING cand[]
-		for (int k = 0; k < candArr.size(); k++) {
-			String candFill = "";
-			for (int l = 0; l < candArr.get(k).size(); l++) {
-				candFill += " " + candArr.get(k).get(l);
-			}
-			if (candFill.equals("")) {
-				candFill = " --";
-			}
-			cand[k] = candFill.substring(1, candFill.length());
-		}
+		rebuildCand(candArr);
 	}
 
 	public static <T> ArrayList<T> removeDuplicates(ArrayList<T> list) {
@@ -659,16 +738,7 @@ public class Sudoku {
 				}
 			}
 		}
-		for (int k = 0; k < candArr.size(); k++) {
-			String candFill = "";
-			for (int l = 0; l < candArr.get(k).size(); l++) {
-				candFill += " " + candArr.get(k).get(l);
-			}
-			if (candFill.equals("")) {
-				candFill = " --";
-			}
-			cand[k] = candFill.substring(1, candFill.length());
-		}
+		rebuildCand(candArr);
 	}
 
 	private static boolean isCorrect() {

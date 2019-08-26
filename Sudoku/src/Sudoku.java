@@ -105,7 +105,7 @@ public class Sudoku {
 			// THE HACK ENDS HERE
 
 			if (!going) {
-				if (bowmanAttempts < (int) Math.pow(size, 1.9)) {
+				if (bowmanAttempts < (int) Math.pow(size, 1.8)) {
 					bowmanAttempts++;
 					playBingo();
 					going = true;

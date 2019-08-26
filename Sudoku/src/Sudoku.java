@@ -214,6 +214,7 @@ public class Sudoku {
 			}
 		}
 
+		
 		// REBUILDING cand[]
 		rebuildCand(candArr);
 		return guess;

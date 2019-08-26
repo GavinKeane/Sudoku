@@ -128,19 +128,23 @@ public class Sudoku {
 					System.exit(0);
 				}
 				if (contradictionPresent()) {
+					
+					// THIS NEVER HAPPENS BECAUSE IT NEVER GETS A CHANCE TO PLAY A LITTLE BIT
+					
 					// ADD stab TO bingoResults
 					bingoResults.add(stab);
 					rep = snapshot;
-
-					// THIS NEVER HAPPENS BECAUSE IT NEVER GETS A CHANCE TO PLAY A LITTLE BIT
 					System.out.println("CONTRA");
 					playingBingo = false;
+					
 				} else if (!going && playingBingo) {
 					rep = snapshot;
 					System.out.println("STUCK?");
 					playingBingo = false;
 				}
 			}
+			System.out.println("SPINNING");
+			printRep();
 			going = true;
 
 			// TODO - LOCKED CANDIDATE (TYPE 2)
@@ -200,6 +204,7 @@ public class Sudoku {
 		for (int i = 0; i < rep.length; i++) {
 			if (cand[i].equals("--") && rep[i].equals("")) {
 				contra = true;
+				System.out.println("CTIRNAS");
 			}
 		}
 		return contra;

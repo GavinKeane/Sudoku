@@ -14,7 +14,7 @@ import java.util.Scanner;
 @SuppressWarnings("unused")
 public class Sudoku {
 
-	static double bingoTime = 1.3;
+	static double bingoTime = 1.1;
 	static int size;
 	static String[] rep;
 	static String[] cand;

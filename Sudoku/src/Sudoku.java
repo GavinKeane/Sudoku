@@ -14,6 +14,7 @@ import java.util.Scanner;
 @SuppressWarnings("unused")
 public class Sudoku {
 
+	static double bingoTime = 1.3;
 	static int size;
 	static String[] rep;
 	static String[] cand;
@@ -105,11 +106,12 @@ public class Sudoku {
 			// THE HACK ENDS HERE
 
 			if (!going) {
-				if (bowmanAttempts < (int) Math.pow(size, 1.8)) {
+				if (bowmanAttempts < (int) Math.pow(size, bingoTime)) {
 					bowmanAttempts++;
 					playBingo();
 					going = true;
 				} else {
+					bruteForce();
 					System.out.println("STUMPED!");
 					for (int j = 0; j < boxesToDraw; j++) {
 						System.out.print("\u2580");
@@ -119,17 +121,92 @@ public class Sudoku {
 					System.exit(0);
 				}
 			}
-
-			// TODO - LOCKED CANDIDATE (TYPE 2)
 		}
+		solvedRoutine(boxesToDraw);
+		reader.close();
+		in.close();
+	}
+
+	private static void solvedRoutine(int boxesToDraw) {
 		System.out.println("SOLVED!");
 		for (int j = 0; j < boxesToDraw; j++) {
 			System.out.print("\u2580");
 		}
 		System.out.println();
 		printRep();
-		reader.close();
-		in.close();
+	}
+
+	private static void bruteForce() {
+		int width = (int) Math.sqrt((double) size);
+
+		boolean going = true;
+		while (going) {
+			going = false;
+			if (!going) {
+				updateCand(true);
+				System.out.print("");
+				for (int j = 0; j < cand.length && !going; j++) {
+					if (cand[j].length() == 1) {
+						rep[j] = cand[j];
+						going = true;
+					}
+				}
+				if (!going) {
+					going = hiddenSingle("r") || hiddenSingle("c") || hiddenSingle("b");
+				}
+			}
+		}
+
+		updateCand(true);
+		ArrayList<ArrayList<String>> candArr = new ArrayList<ArrayList<String>>();
+		for (int i = 0; i < cand.length; i++) {
+			candArr.add(new ArrayList<String>(Arrays.asList(cand[i].split(" "))));
+		}
+
+		// CONTRADICTION (BASE CASE TWO)
+		if (contradictionPresent()) {
+			return;
+		}
+
+		// CORRECT (BASE CASE ONE)
+		if (isCorrect()) {
+			solvedRoutine(105);
+			System.exit(0);
+		}
+
+		int indexSmallCand = 0;
+		while (candArr.get(indexSmallCand).size() < 2) {
+			indexSmallCand++;
+		}
+		for (int i = indexSmallCand; i < candArr.size(); i++) {
+			if (!candArr.get(i).get(0).equals("--") && candArr.get(i).size() < candArr.get(indexSmallCand).size()
+					&& (candArr.get(indexSmallCand).size() > 1)) {
+				indexSmallCand = i;
+			}
+		}
+
+		// STUMPED! (RECURSIVE CASE)
+		if (!going) {
+			for (int i = 0; i < candArr.get(indexSmallCand).size(); i++) {
+
+				String snapshot[] = new String[rep.length];
+				for (int j = 0; j < rep.length; j++) {
+					snapshot[j] = rep[j];
+				}
+
+				rep[indexSmallCand] = candArr.get(indexSmallCand).get(i);
+				// TODO - DEBUG ON THIS FOR COOL RESULT
+				// printRep();
+				rebuildCand(candArr);
+				bruteForce();
+
+				for (int j = 0; j < rep.length; j++) {
+					rep[j] = snapshot[j];
+				}
+			}
+
+		}
+		rebuildCand(candArr);
 	}
 
 	private static void rebuildCand(ArrayList<ArrayList<String>> candArr) {
@@ -201,20 +278,15 @@ public class Sudoku {
 			}
 			if (!going) {
 				if (contradictionPresent()) {
-					for (int i = 0; i < rep.length; i++) {
-						rep[i] = snapshot[i];
-					}
 					bingoResults.add(guess);
-					System.out.println("EXCLUSION " + guess.toString() + " ELIMINATED");
-				} else {
-					for (int i = 0; i < rep.length; i++) {
-						rep[i] = snapshot[i];
-					}
+					// System.out.println("EXCLUSION " + guess.toString() + " ELIMINATED");
+				}
+				for (int i = 0; i < rep.length; i++) {
+					rep[i] = snapshot[i];
 				}
 			}
 		}
 
-		
 		// REBUILDING cand[]
 		rebuildCand(candArr);
 		return guess;

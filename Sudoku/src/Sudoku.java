@@ -348,7 +348,7 @@ public class Sudoku {
 						if (i % sqrtWidth == (sqrtWidth - 1)) {
 							System.out.print("\u2550");
 						} else {
-							System.out.print("\u257C");
+							System.out.print("\u2500");
 						}
 					}
 					if (j + 1 != width) {
